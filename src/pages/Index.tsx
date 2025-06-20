@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WelcomeScreen from '../components/WelcomeScreen';
 import SignInScreen from '../components/SignInScreen';
 import HomeScreen from '../components/HomeScreen';
@@ -13,6 +13,13 @@ const Index = () => {
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  useEffect(() => {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
   const navigateToScreen = (screen: string) => {
     setCurrentScreen(screen);
   };
@@ -23,7 +30,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
       {/* Main Content */}
       <div className="relative z-10">
         {currentScreen === 'welcome' && (
