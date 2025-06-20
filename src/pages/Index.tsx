@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import WelcomeScreen from '../components/WelcomeScreen';
 import SignInScreen from '../components/SignInScreen';
 import HomeScreen from '../components/HomeScreen';
+import SettingsScreen from '../components/SettingsScreen';
 import ReportScreen from '../components/ReportScreen';
 import HistoryScreen from '../components/HistoryScreen';
 import MapScreen from '../components/MapScreen';
@@ -38,6 +39,9 @@ const Index = () => {
           <>
             {currentScreen === 'home' && (
               <HomeScreen onNavigate={navigateToScreen} />
+            )}
+            {currentScreen === 'settings' && (
+              <SettingsScreen onNavigate={navigateToScreen} />
             )}
             {currentScreen === 'report' && (
               <ReportScreen onNavigate={navigateToScreen} />
