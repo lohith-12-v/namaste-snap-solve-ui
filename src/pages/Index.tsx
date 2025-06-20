@@ -1,12 +1,59 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import WelcomeScreen from '../components/WelcomeScreen';
+import SignInScreen from '../components/SignInScreen';
+import HomeScreen from '../components/HomeScreen';
+import ReportScreen from '../components/ReportScreen';
+import HistoryScreen from '../components/HistoryScreen';
+import MapScreen from '../components/MapScreen';
+import ChatBot from '../components/ChatBot';
 
 const Index = () => {
+  const [currentScreen, setCurrentScreen] = useState('welcome');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const navigateToScreen = (screen: string) => {
+    setCurrentScreen(screen);
+  };
+
+  const handleSignIn = () => {
+    setIsAuthenticated(true);
+    setCurrentScreen('home');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      {/* Main Content */}
+      <div className="relative z-10">
+        {currentScreen === 'welcome' && (
+          <WelcomeScreen onNavigate={navigateToScreen} />
+        )}
+        {currentScreen === 'signin' && (
+          <SignInScreen onSignIn={handleSignIn} onNavigate={navigateToScreen} />
+        )}
+        {currentScreen === 'signup' && (
+          <SignInScreen isSignUp onSignIn={handleSignIn} onNavigate={navigateToScreen} />
+        )}
+        {isAuthenticated && (
+          <>
+            {currentScreen === 'home' && (
+              <HomeScreen onNavigate={navigateToScreen} />
+            )}
+            {currentScreen === 'report' && (
+              <ReportScreen onNavigate={navigateToScreen} />
+            )}
+            {currentScreen === 'history' && (
+              <HistoryScreen onNavigate={navigateToScreen} />
+            )}
+            {currentScreen === 'map' && (
+              <MapScreen onNavigate={navigateToScreen} />
+            )}
+          </>
+        )}
       </div>
+
+      {/* Floating ChatBot */}
+      {isAuthenticated && <ChatBot />}
     </div>
   );
 };
