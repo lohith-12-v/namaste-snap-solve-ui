@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MapPin, Camera, Mic, Check, Construction, Droplets, Zap, Shield } from 'lucide-react';
+import { ArrowLeft, MapPin, Camera, Mic, Check, Construction, Droplets, Zap, Shield, X, Upload } from 'lucide-react';
 
 interface ReportScreenProps {
   onNavigate: (screen: string) => void;
@@ -20,7 +19,7 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
     category: '',
     subcategory: '',
     description: '',
-    photos: []
+    photos: [] as File[]
   });
 
   const categories = [
@@ -49,6 +48,23 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
       image: '🛡️'
     }
   ];
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (formData.photos.length + files.length <= 4) {
+      setFormData(prev => ({
+        ...prev,
+        photos: [...prev.photos, ...files]
+      }));
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -178,7 +194,7 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
           </Card>
         )}
 
-        {/* Step 2: Problem Type */}
+        {/* Step 2: Problem Type - 2x2 Grid */}
         {currentStep === 2 && (
           <Card className="p-4 md:p-6 rounded-2xl shadow-md space-y-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div className="text-center mb-6">
@@ -186,14 +202,14 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
               <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">What kind of issue are you reporting?</p>
             </div>
 
-            <div className="space-y-3">
-              {categories.map((category, index) => {
+            <div className="grid grid-cols-2 gap-4">
+              {categories.map((category) => {
                 const IconComponent = category.icon;
                 return (
                   <div key={category.name} className="space-y-2">
                     <Button
                       variant={formData.category === category.name ? "default" : "outline"}
-                      className={`w-full p-4 rounded-xl text-left justify-start transition-all duration-300 ${
+                      className={`w-full p-4 rounded-xl text-left justify-start transition-all duration-300 min-h-[120px] flex-col ${
                         formData.category === category.name 
                           ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900' 
                           : 'hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
@@ -204,21 +220,17 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
                         subcategory: '' 
                       }))}
                     >
-                      <div className="flex items-center space-x-3">
+                      <div className="flex flex-col items-center space-y-2 text-center">
                         <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                           <span className="text-2xl">{category.image}</span>
                         </div>
-                        <div>
-                          <span className="font-medium text-sm md:text-base">{category.name}</span>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <IconComponent size={16} className="text-gray-600 dark:text-gray-400" />
-                          </div>
-                        </div>
+                        <span className="font-medium text-sm">{category.name}</span>
+                        <IconComponent size={16} className="text-gray-600 dark:text-gray-400" />
                       </div>
                     </Button>
 
                     {formData.category === category.name && (
-                      <div className="ml-6 space-y-2 animate-fade-in">
+                      <div className="space-y-2 animate-fade-in">
                         {category.subcategories.map((sub) => (
                           <Button
                             key={sub}
@@ -291,7 +303,7 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
           </Card>
         )}
 
-        {/* Step 4: Photos */}
+        {/* Step 4: Photos with Upload Functionality */}
         {currentStep === 4 && (
           <Card className="p-4 md:p-6 rounded-2xl shadow-md space-y-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div className="text-center mb-6">
@@ -300,17 +312,58 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300"
-                >
-                  <div className="text-center">
-                    <Camera className="mx-auto mb-2 text-gray-400 dark:text-gray-500" size={20} />
-                    <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Add Photo {i}</span>
+              {[1, 2, 3, 4].map((i) => {
+                const photoIndex = i - 1;
+                const hasPhoto = formData.photos[photoIndex];
+                
+                return (
+                  <div key={i} className="relative">
+                    {hasPhoto ? (
+                      <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl border-2 border-gray-300 dark:border-gray-600 relative overflow-hidden">
+                        <img
+                          src={URL.createObjectURL(hasPhoto)}
+                          alt={`Photo ${i}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => removePhoto(photoIndex)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          multiple={formData.photos.length === 0}
+                        />
+                        <div className="text-center">
+                          <Camera className="mx-auto mb-2 text-gray-400 dark:text-gray-500" size={20} />
+                          <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Add Photo {i}</span>
+                        </div>
+                      </label>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-center">
+              <label className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                  multiple
+                />
+                <Upload size={20} />
+                <span className="text-sm">Upload Multiple Photos</span>
+              </label>
             </div>
 
             <Button

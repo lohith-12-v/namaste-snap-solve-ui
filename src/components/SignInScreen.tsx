@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, CreditCard, Mail, Lock, Fingerprint } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Eye, EyeOff, CreditCard, Mail, Lock, Fingerprint, User, MapPin } from 'lucide-react';
 
 interface SignInScreenProps {
   isSignUp?: boolean;
@@ -11,8 +12,10 @@ interface SignInScreenProps {
 
 const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenProps) => {
   const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    email: '',
     aadhaar: '',
-    emailOrMobile: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -22,14 +25,21 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
     return value.length === 12 && /^\d{12}$/.test(value);
   };
 
-  const validateEmailOrMobile = (value: string) => {
+  const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const mobileRegex = /^\d{10}$/;
-    return emailRegex.test(value) || mobileRegex.test(value);
+    return emailRegex.test(value);
   };
 
   const validatePassword = (value: string) => {
     return value.length >= 6;
+  };
+
+  const validateName = (value: string) => {
+    return value.length >= 2;
+  };
+
+  const validateAddress = (value: string) => {
+    return value.length >= 10;
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -39,10 +49,14 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
     let error = '';
     if (field === 'aadhaar' && value && !validateAadhaar(value)) {
       error = 'Aadhaar must be 12 digits';
-    } else if (field === 'emailOrMobile' && value && !validateEmailOrMobile(value)) {
-      error = 'Enter valid email or 10-digit mobile';
+    } else if (field === 'email' && value && !validateEmail(value)) {
+      error = 'Enter valid email address';
     } else if (field === 'password' && value && !validatePassword(value)) {
       error = 'Password must be at least 6 characters';
+    } else if (field === 'name' && value && !validateName(value)) {
+      error = 'Name must be at least 2 characters';
+    } else if (field === 'address' && value && !validateAddress(value)) {
+      error = 'Address must be at least 10 characters';
     }
     
     setErrors(prev => ({ ...prev, [field]: error }));
@@ -54,8 +68,10 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
     
     switch (field) {
       case 'aadhaar': return validateAadhaar(value);
-      case 'emailOrMobile': return validateEmailOrMobile(value);
+      case 'email': return validateEmail(value);
       case 'password': return validatePassword(value);
+      case 'name': return validateName(value);
+      case 'address': return validateAddress(value);
       default: return false;
     }
   };
@@ -89,6 +105,95 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
           </div>
 
           <div className="space-y-4">
+            {/* Sign Up Fields */}
+            {isSignUp && (
+              <>
+                {/* Name Field */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                      errors.name ? 'border-red-400 animate-pulse' : 
+                      isFieldValid('name') ? 'border-green-400' : 
+                      'border-white/30 focus:border-white/50 focus:animate-pulse'
+                    }`}
+                  />
+                  {isFieldValid('name') && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    </div>
+                  )}
+                  {errors.name && (
+                    <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* Address Field */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MapPin className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                      errors.address ? 'border-red-400 animate-pulse' : 
+                      isFieldValid('address') ? 'border-green-400' : 
+                      'border-white/30 focus:border-white/50 focus:animate-pulse'
+                    }`}
+                  />
+                  {isFieldValid('address') && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    </div>
+                  )}
+                  {errors.address && (
+                    <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.address}</p>
+                  )}
+                </div>
+
+                {/* Email Field for Sign Up */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                      errors.email ? 'border-red-400 animate-pulse' : 
+                      isFieldValid('email') ? 'border-green-400' : 
+                      'border-white/30 focus:border-white/50 focus:animate-pulse'
+                    }`}
+                  />
+                  {isFieldValid('email') && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    </div>
+                  )}
+                  {errors.email && (
+                    <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.email}</p>
+                  )}
+                </div>
+              </>
+            )}
+
             {/* Aadhaar Field */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -118,33 +223,35 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
               )}
             </div>
 
-            {/* Email/Mobile Field */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Email or Mobile"
-                value={formData.emailOrMobile}
-                onChange={(e) => handleInputChange('emailOrMobile', e.target.value)}
-                className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
-                  errors.emailOrMobile ? 'border-red-400 animate-pulse' : 
-                  isFieldValid('emailOrMobile') ? 'border-green-400' : 
-                  'border-white/30 focus:border-white/50 focus:animate-pulse'
-                }`}
-              />
-              {isFieldValid('emailOrMobile') && (
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
+            {/* Email/Mobile Field for Sign In */}
+            {!isSignUp && (
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
                 </div>
-              )}
-              {errors.emailOrMobile && (
-                <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.emailOrMobile}</p>
-              )}
-            </div>
+                <input
+                  type="text"
+                  placeholder="Email or Mobile"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                    errors.email ? 'border-red-400 animate-pulse' : 
+                    isFieldValid('email') ? 'border-green-400' : 
+                    'border-white/30 focus:border-white/50 focus:animate-pulse'
+                  }`}
+                />
+                {isFieldValid('email') && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                  </div>
+                )}
+                {errors.email && (
+                  <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.email}</p>
+                )}
+              </div>
+            )}
 
             {/* Password Field */}
             <div className="relative">
