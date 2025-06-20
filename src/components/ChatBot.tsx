@@ -2,122 +2,121 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { MessageCircle, X, Send } from 'lucide-react';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your AI assistant. How can I help you report an issue today?", isBot: true }
+    { id: 1, text: "Hello! I'm TG FixIt Assistant. How can I help you today?", sender: 'bot' }
   ]);
-  const [inputText, setInputText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [inputMessage, setInputMessage] = useState('');
 
-  const sendMessage = () => {
-    if (!inputText.trim()) return;
-
-    const newMessage = { id: Date.now(), text: inputText, isBot: false };
-    setMessages(prev => [...prev, newMessage]);
-    setInputText('');
-    setIsTyping(true);
-
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse = {
-        id: Date.now() + 1,
-        text: "I understand you need help with that. Let me guide you through the reporting process or help fill out the form.",
-        isBot: true
-      };
-      setMessages(prev => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 1500);
+  const responses = {
+    'how to report': 'To report an issue: 1) Go to Report a Problem, 2) Select your location, 3) Choose problem category, 4) Add description and photos, 5) Submit!',
+    'track report': 'You can track your reports in the Report History section. Click on any report to see its progress timeline.',
+    'reward points': 'You earn reward points for each report submitted and additional points when issues are resolved. Points can be redeemed for various rewards.',
+    'contact support': 'For urgent issues, contact GHMC at 040-21111111 or email support@tgfixit.gov.in',
+    'app features': 'TG FixIt allows you to report civic issues, track their progress, earn rewards, and help make Telangana better for everyone.',
+    'account': 'You can manage your account settings by clicking the Settings icon in the top right corner of the home screen.',
+    'privacy': 'Your data is secure and used only for improving civic services. We follow strict privacy guidelines.',
+    'feedback': 'We value your feedback! You can rate resolved issues and provide comments to help us improve our services.'
   };
 
-  return (
-    <>
-      {/* Chat Window */}
-      {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-80 h-96 bg-white rounded-2xl shadow-2xl z-50 flex flex-col animate-scale-in">
-          {/* Header */}
-          <div className="bg-purple-600 text-white p-4 rounded-t-2xl flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle size={16} />
-              </div>
-              <span className="font-medium">AI Assistant</span>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={() => setIsOpen(false)}
-              className="text-white hover:bg-white/20 p-2 h-auto"
-            >
-              <X size={16} />
-            </Button>
-          </div>
+  const handleSendMessage = () => {
+    if (!inputMessage.trim()) return;
 
-          {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-              >
-                <div
-                  className={`max-w-[80%] p-3 rounded-xl ${
-                    message.isBot
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'bg-purple-600 text-white'
-                  }`}
-                >
-                  <p className="text-sm">{message.text}</p>
-                </div>
-              </div>
-            ))}
+    const newMessage = { id: Date.now(), text: inputMessage, sender: 'user' };
+    setMessages(prev => [...prev, newMessage]);
 
-            {/* Typing Indicator */}
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 p-3 rounded-xl">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+    // Find appropriate response
+    const lowercaseInput = inputMessage.toLowerCase();
+    let response = "I'm here to help with TG FixIt related questions. You can ask about reporting issues, tracking reports, reward points, or app features.";
+    
+    for (const [key, value] of Object.entries(responses)) {
+      if (lowercaseInput.includes(key)) {
+        response = value;
+        break;
+      }
+    }
 
-          {/* Input */}
-          <div className="p-4 border-t">
-            <div className="flex space-x-2">
-              <Input
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 rounded-xl"
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              />
-              <Button
-                onClick={sendMessage}
-                className="bg-purple-600 hover:bg-purple-700 p-2 rounded-xl"
-              >
-                <Send size={16} />
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
+    setTimeout(() => {
+      const botResponse = { id: Date.now() + 1, text: response, sender: 'bot' };
+      setMessages(prev => [...prev, botResponse]);
+    }, 1000);
 
-      {/* Chat Button */}
+    setInputMessage('');
+  };
+
+  if (!isOpen) {
+    return (
       <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-orange-500 hover:bg-orange-600 rounded-full shadow-lg z-40 p-0 animate-bounce"
-        style={{ animationDuration: '2s' }}
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-lg z-50"
       >
-        {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
+        <MessageCircle size={24} />
       </Button>
-    </>
+    );
+  }
+
+  return (
+    <Card className="fixed bottom-6 right-6 w-80 h-96 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div>
+          <h3 className="font-semibold text-gray-900 dark:text-white">TG FixIt Assistant</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsOpen(false)}
+          className="h-8 w-8"
+        >
+          <X size={16} />
+        </Button>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-3">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-xs p-3 rounded-xl text-sm ${
+                message.sender === 'user'
+                  ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                  : 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+              }`}
+            >
+              {message.text}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Input */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Ask me anything..."
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
+          />
+          <Button
+            onClick={handleSendMessage}
+            size="icon"
+            className="h-10 w-10 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+          >
+            <Send size={16} />
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 };
 

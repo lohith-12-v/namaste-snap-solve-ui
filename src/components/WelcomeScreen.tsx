@@ -22,11 +22,14 @@ const WelcomeScreen = ({ onNavigate }: WelcomeScreenProps) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-between min-h-screen px-6 md:px-8">
-        <div className="flex-1 flex flex-col justify-center items-center text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-wide drop-shadow-lg">
+        <div className="flex-1 flex flex-col justify-center items-start text-left pl-4 md:pl-8">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 tracking-wide drop-shadow-lg font-['Poppins']">
             Namaste
           </h1>
-          <p className="text-lg md:text-xl text-white/90 mb-8 font-light px-4 drop-shadow-md">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white/90 mb-4 tracking-wide drop-shadow-lg font-['Poppins']">
+            TG FixIt
+          </h2>
+          <p className="text-lg md:text-xl text-white/90 mb-8 font-light drop-shadow-md font-['Poppins']">
             Ready to make Telangana better?
           </p>
         </div>
@@ -34,14 +37,14 @@ const WelcomeScreen = ({ onNavigate }: WelcomeScreenProps) => {
         <div className="pb-8 md:pb-16 space-y-4 max-w-md mx-auto w-full">
           <Button
             onClick={() => onNavigate('signin')}
-            className="w-full bg-gray-900/80 hover:bg-gray-800/90 backdrop-blur-sm text-white rounded-full py-3 md:py-4 text-base md:text-lg font-semibold border border-gray-500/30"
+            className="w-full bg-gray-900/80 hover:bg-gray-800/90 backdrop-blur-sm text-white rounded-full py-3 md:py-4 text-base md:text-lg font-semibold border border-gray-500/30 font-['Poppins'] transition-all duration-300 hover:scale-105"
           >
             Sign In
           </Button>
           <Button
             onClick={() => onNavigate('signup')}
             variant="outline"
-            className="w-full bg-transparent border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm rounded-full py-3 md:py-4 text-base md:text-lg font-semibold"
+            className="w-full bg-transparent border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm rounded-full py-3 md:py-4 text-base md:text-lg font-semibold font-['Poppins'] transition-all duration-300 hover:scale-105"
           >
             Sign Up
           </Button>

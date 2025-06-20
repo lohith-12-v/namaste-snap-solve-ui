@@ -17,6 +17,7 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm px-4 md:px-6 py-4 flex items-center justify-between">
         <div>
+          <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white font-['Poppins']">TG FixIt</h1>
           <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">Namaste, Rajesh!</h2>
           <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Ready to make Telangana better?</p>
         </div>
@@ -72,7 +73,10 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
 
       {/* Report Progress Card */}
       <div className="px-4 md:px-6 mb-6">
-        <Card className="p-4 rounded-xl shadow-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card 
+          className="p-4 rounded-xl shadow-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => onNavigate('history')}
+        >
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-white">Latest Report Progress</h3>
             <TrendingUp className="text-gray-600 dark:text-gray-400" size={18} />

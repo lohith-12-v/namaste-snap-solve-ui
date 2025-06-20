@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MapPin, Camera, Mic, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, Camera, Mic, Check, Construction, Droplets, Zap, Shield } from 'lucide-react';
 
 interface ReportScreenProps {
   onNavigate: (screen: string) => void;
@@ -24,10 +24,30 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
   });
 
   const categories = [
-    { name: 'Roads & Transport', subcategories: ['Potholes', 'Broken Traffic Lights', 'Missing Signs'] },
-    { name: 'Water & Sanitation', subcategories: ['Water Leakage', 'Drainage Issues', 'Garbage Collection'] },
-    { name: 'Electricity', subcategories: ['Street Lights', 'Power Outage', 'Damaged Poles'] },
-    { name: 'Public Safety', subcategories: ['Unsafe Areas', 'Vandalism', 'Missing Security'] }
+    { 
+      name: 'Roads & Transport', 
+      icon: Construction,
+      subcategories: ['Potholes', 'Broken Traffic Lights', 'Missing Signs'],
+      image: '🚧'
+    },
+    { 
+      name: 'Water & Sanitation', 
+      icon: Droplets,
+      subcategories: ['Water Leakage', 'Drainage Issues', 'Garbage Collection'],
+      image: '💧'
+    },
+    { 
+      name: 'Electricity', 
+      icon: Zap,
+      subcategories: ['Street Lights', 'Power Outage', 'Damaged Poles'],
+      image: '⚡'
+    },
+    { 
+      name: 'Public Safety', 
+      icon: Shield,
+      subcategories: ['Unsafe Areas', 'Vandalism', 'Missing Security'],
+      image: '🛡️'
+    }
   ];
 
   const handleSubmit = async () => {
@@ -46,22 +66,27 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
   if (showSuccess) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center relative overflow-hidden px-4">
-        {/* Confetti Animation */}
+        {/* Enhanced Confetti Animation */}
         <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(50)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 bg-gray-900 dark:bg-gray-100 rounded-full animate-bounce"
+              className={`absolute w-3 h-3 rounded-full animate-bounce ${
+                i % 3 === 0 ? 'bg-gray-900 dark:bg-gray-100' : 
+                i % 3 === 1 ? 'bg-gray-700 dark:bg-gray-300' : 
+                'bg-gray-500 dark:bg-gray-500'
+              }`}
               style={{
                 left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1 + Math.random()}s`
+                animationDuration: `${0.5 + Math.random()}s`
               }}
             />
           ))}
         </div>
 
-        <Card className="p-6 md:p-8 rounded-2xl shadow-xl text-center max-w-sm mx-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="p-6 md:p-8 rounded-2xl shadow-xl text-center max-w-sm mx-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 relative z-10">
           <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6 animate-scale-in">
             <Check className="text-gray-900 dark:text-gray-100" size={32} />
           </div>
@@ -69,6 +94,7 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
           <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm md:text-base">
             Your report has been successfully submitted. We'll keep you updated on the progress.
           </p>
+          <div className="text-4xl mb-4">🎉</div>
           <p className="text-xs md:text-sm text-gray-500 dark:text-gray-500">
             Redirecting to home in a few seconds...
           </p>
@@ -161,49 +187,57 @@ const ReportScreen = ({ onNavigate }: ReportScreenProps) => {
             </div>
 
             <div className="space-y-3">
-              {categories.map((category, index) => (
-                <div key={category.name} className="space-y-2">
-                  <Button
-                    variant={formData.category === category.name ? "default" : "outline"}
-                    className={`w-full p-4 rounded-xl text-left justify-start transition-all duration-300 ${
-                      formData.category === category.name 
-                        ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
-                    }`}
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      category: category.name, 
-                      subcategory: '' 
-                    }))}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                        <span className="text-gray-900 dark:text-gray-100 font-bold text-sm">{index + 1}</span>
+              {categories.map((category, index) => {
+                const IconComponent = category.icon;
+                return (
+                  <div key={category.name} className="space-y-2">
+                    <Button
+                      variant={formData.category === category.name ? "default" : "outline"}
+                      className={`w-full p-4 rounded-xl text-left justify-start transition-all duration-300 ${
+                        formData.category === category.name 
+                          ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900' 
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
+                      }`}
+                      onClick={() => setFormData(prev => ({ 
+                        ...prev, 
+                        category: category.name, 
+                        subcategory: '' 
+                      }))}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">{category.image}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-sm md:text-base">{category.name}</span>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <IconComponent size={16} className="text-gray-600 dark:text-gray-400" />
+                          </div>
+                        </div>
                       </div>
-                      <span className="font-medium text-sm md:text-base">{category.name}</span>
-                    </div>
-                  </Button>
+                    </Button>
 
-                  {formData.category === category.name && (
-                    <div className="ml-6 space-y-2 animate-fade-in">
-                      {category.subcategories.map((sub) => (
-                        <Button
-                          key={sub}
-                          variant={formData.subcategory === sub ? "default" : "outline"}
-                          className={`w-full p-3 rounded-lg text-left justify-start text-sm ${
-                            formData.subcategory === sub 
-                              ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900' 
-                              : 'hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
-                          }`}
-                          onClick={() => setFormData(prev => ({ ...prev, subcategory: sub }))}
-                        >
-                          {sub}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {formData.category === category.name && (
+                      <div className="ml-6 space-y-2 animate-fade-in">
+                        {category.subcategories.map((sub) => (
+                          <Button
+                            key={sub}
+                            variant={formData.subcategory === sub ? "default" : "outline"}
+                            className={`w-full p-3 rounded-lg text-left justify-start text-sm ${
+                              formData.subcategory === sub 
+                                ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900' 
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
+                            }`}
+                            onClick={() => setFormData(prev => ({ ...prev, subcategory: sub }))}
+                          >
+                            {sub}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <Button
