@@ -1,52 +1,66 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft, Fingerprint, Eye, EyeOff, Mail, Phone, Lock, CreditCard, Check } from 'lucide-react';
+import { Eye, EyeOff, CreditCard, Mail, Lock, Fingerprint } from 'lucide-react';
 
 interface SignInScreenProps {
+  isSignUp?: boolean;
   onSignIn: () => void;
   onNavigate: (screen: string) => void;
-  isSignUp?: boolean;
 }
 
-const SignInScreen = ({ onSignIn, onNavigate, isSignUp = false }: SignInScreenProps) => {
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [signupData, setSignupData] = useState({ aadhaar: '', name: '', email: '', mobile: '', password: '' });
-  const [showPassword, setShowPassword] = useState({ login: false, signup: false });
-  const [validations, setValidations] = useState({
-    aadhaar: false,
-    email: false,
-    mobile: false,
-    password: false
+const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenProps) => {
+  const [formData, setFormData] = useState({
+    aadhaar: '',
+    emailOrMobile: '',
+    password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const validateAadhaar = (value: string) => {
-    const isValid = /^\d{12}$/.test(value);
-    setValidations(prev => ({ ...prev, aadhaar: isValid }));
-    return isValid;
+    return value.length === 12 && /^\d{12}$/.test(value);
   };
 
-  const validateEmail = (value: string) => {
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    setValidations(prev => ({ ...prev, email: isValid }));
-    return isValid;
-  };
-
-  const validateMobile = (value: string) => {
-    const isValid = /^\d{10}$/.test(value);
-    setValidations(prev => ({ ...prev, mobile: isValid }));
-    return isValid;
+  const validateEmailOrMobile = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const mobileRegex = /^\d{10}$/;
+    return emailRegex.test(value) || mobileRegex.test(value);
   };
 
   const validatePassword = (value: string) => {
-    const isValid = value.length >= 8;
-    setValidations(prev => ({ ...prev, password: isValid }));
-    return isValid;
+    return value.length >= 6;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time validation
+    let error = '';
+    if (field === 'aadhaar' && value && !validateAadhaar(value)) {
+      error = 'Aadhaar must be 12 digits';
+    } else if (field === 'emailOrMobile' && value && !validateEmailOrMobile(value)) {
+      error = 'Enter valid email or 10-digit mobile';
+    } else if (field === 'password' && value && !validatePassword(value)) {
+      error = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const isFieldValid = (field: string) => {
+    const value = formData[field as keyof typeof formData];
+    if (!value) return false;
+    
+    switch (field) {
+      case 'aadhaar': return validateAadhaar(value);
+      case 'emailOrMobile': return validateEmailOrMobile(value);
+      case 'password': return validatePassword(value);
+      default: return false;
+    }
+  };
+
+  const handleSubmit = () => {
     onSignIn();
   };
 
@@ -59,224 +73,159 @@ const SignInScreen = ({ onSignIn, onNavigate, isSignUp = false }: SignInScreenPr
           backgroundImage: 'url(/lovable-uploads/ff17cad1-0c31-4b44-84ba-6c99b21b6145.png)' 
         }}
       >
-        {/* Dark overlay for better content readability */}
         <div className="absolute inset-0 bg-black/50 dark:bg-black/70"></div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header */}
-        <div className="flex items-center p-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onNavigate('welcome')}
-            className="text-white hover:bg-white/20 rounded-full backdrop-blur-sm"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-        </div>
+      <div className="relative z-10 flex flex-col justify-center min-h-screen px-6 md:px-8">
+        <div className="max-w-md mx-auto w-full">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
+            </h1>
+            <p className="text-white/80 font-['Poppins']">
+              {isSignUp ? 'Join TG FixIt community' : 'Sign in to continue'}
+            </p>
+          </div>
 
-        <div className="flex-1 flex items-end">
-          <div className="w-full px-6 pb-8">
-            {/* Form Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Login Card */}
-              <Card className="bg-gray-900/90 dark:bg-gray-950/90 backdrop-blur-md text-white rounded-3xl p-6 border border-gray-500/30">
-                <h3 className="text-2xl font-bold mb-6 text-center font-['Poppins']">Login</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Email/Mobile Field */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      {loginData.email.includes('@') ? <Mail size={20} /> : <Phone size={20} />}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Mobile Number or Email ID"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full pl-12 pr-12 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                    />
-                    {validateEmail(loginData.email) && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <Check className="text-green-400 animate-bounce" size={20} />
-                      </div>
-                    )}
+          <div className="space-y-4">
+            {/* Aadhaar Field */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <CreditCard className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Aadhaar Number"
+                value={formData.aadhaar}
+                onChange={(e) => handleInputChange('aadhaar', e.target.value)}
+                maxLength={12}
+                className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                  errors.aadhaar ? 'border-red-400 animate-pulse' : 
+                  isFieldValid('aadhaar') ? 'border-green-400' : 
+                  'border-white/30 focus:border-white/50 focus:animate-pulse'
+                }`}
+              />
+              {isFieldValid('aadhaar') && (
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                    <span className="text-white text-xs">✓</span>
                   </div>
+                </div>
+              )}
+              {errors.aadhaar && (
+                <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.aadhaar}</p>
+              )}
+            </div>
 
-                  {/* Password Field */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <Lock size={20} />
-                    </div>
-                    <input
-                      type={showPassword.login ? 'text' : 'password'}
-                      placeholder="Password"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
-                      className="w-full pl-12 pr-12 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(prev => ({ ...prev, login: !prev.login }))}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
-                    >
-                      {showPassword.login ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
+            {/* Email/Mobile Field */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Email or Mobile"
+                value={formData.emailOrMobile}
+                onChange={(e) => handleInputChange('emailOrMobile', e.target.value)}
+                className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                  errors.emailOrMobile ? 'border-red-400 animate-pulse' : 
+                  isFieldValid('emailOrMobile') ? 'border-green-400' : 
+                  'border-white/30 focus:border-white/50 focus:animate-pulse'
+                }`}
+              />
+              {isFieldValid('emailOrMobile') && (
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                    <span className="text-white text-xs">✓</span>
                   </div>
+                </div>
+              )}
+              {errors.emailOrMobile && (
+                <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.emailOrMobile}</p>
+              )}
+            </div>
 
-                  {/* Fingerprint Icon */}
-                  <div className="flex justify-center py-4">
-                    <div className="w-16 h-16 bg-gray-700/30 dark:bg-gray-600/30 rounded-full flex items-center justify-center backdrop-blur-sm animate-pulse">
-                      <Fingerprint className="text-gray-300 animate-bounce" size={32} />
-                    </div>
+            {/* Password Field */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                className={`w-full pl-10 pr-20 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
+                  errors.password ? 'border-red-400 animate-pulse' : 
+                  isFieldValid('password') ? 'border-green-400' : 
+                  'border-white/30 focus:border-white/50 focus:animate-pulse'
+                }`}
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center space-x-2">
+                {isFieldValid('password') && (
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                    <span className="text-white text-xs">✓</span>
                   </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.password}</p>
+              )}
+            </div>
 
-                  {/* Sign In Button */}
-                  <Button
-                    type="submit"
-                    className="w-full bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-2xl py-4 text-lg font-semibold font-['Poppins'] transition-all duration-300 hover:scale-105 active:scale-95"
-                  >
-                    Sign In
-                  </Button>
+            {/* Fingerprint Icon */}
+            <div className="flex justify-center py-4">
+              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-full animate-pulse">
+                <Fingerprint className="h-8 w-8 text-white/70" />
+              </div>
+            </div>
 
-                  {/* Forgot Password */}
-                  <div className="text-center">
-                    <button type="button" className="text-sm text-gray-300 hover:text-white underline font-['Poppins']">
-                      Forgot password?
-                    </button>
-                  </div>
+            {/* Sign In Button */}
+            <Button
+              onClick={handleSubmit}
+              className="w-full bg-gray-900/80 hover:bg-gray-800/90 backdrop-blur-sm text-white rounded-xl py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 active:scale-95 font-['Poppins']"
+            >
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </Button>
 
-                  {/* Social Login */}
-                  <div className="flex justify-center space-x-4 pt-4">
-                    <button className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center hover:bg-gray-600/50 transition-all duration-300 hover:shadow-lg">
-                      <div className="w-6 h-6 bg-white rounded-full"></div>
-                    </button>
-                    <button className="w-12 h-12 bg-gray-700/50 rounded-full flex items-center justify-center hover:bg-gray-600/50 transition-all duration-300 hover:shadow-lg">
-                      <div className="w-6 h-6 bg-blue-600 rounded-full"></div>
-                    </button>
-                  </div>
-                </form>
-                
-                <p className="text-center text-sm text-gray-300 mt-4 font-['Poppins']">
-                  The state where there is a blend of tradition
-                </p>
-              </Card>
+            {/* Forgot Password */}
+            {!isSignUp && (
+              <div className="text-center">
+                <button className="text-white/80 hover:text-white text-sm transition-colors font-['Poppins']">
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
-              {/* Sign Up Card */}
-              <Card className="bg-gray-900/90 dark:bg-gray-950/90 backdrop-blur-md text-white rounded-3xl p-6 border border-gray-500/30">
-                <h3 className="text-2xl font-bold mb-6 text-center font-['Poppins']">Sign Up</h3>
-                <form className="space-y-4">
-                  {/* Aadhaar Field */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <CreditCard size={20} />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Aadhaar Card Details"
-                      value={signupData.aadhaar}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 12);
-                        setSignupData(prev => ({ ...prev, aadhaar: value }));
-                        validateAadhaar(value);
-                      }}
-                      className="w-full pl-12 pr-12 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                      maxLength={12}
-                    />
-                    {validations.aadhaar && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <Check className="text-green-400 animate-bounce" size={20} />
-                      </div>
-                    )}
-                  </div>
+            {/* Social Login */}
+            <div className="flex justify-center space-x-4 pt-4">
+              <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300 hover:shadow-lg cursor-pointer">
+                <span className="text-white font-bold">G</span>
+              </div>
+              <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300 hover:shadow-lg cursor-pointer">
+                <span className="text-white font-bold">f</span>
+              </div>
+            </div>
 
-                  {/* Name Field */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Name"
-                      value={signupData.name}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-4 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                    />
-                  </div>
-
-                  {/* Email Field */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <Mail size={20} />
-                    </div>
-                    <input
-                      type="email"
-                      placeholder="Email ID"
-                      value={signupData.email}
-                      onChange={(e) => {
-                        setSignupData(prev => ({ ...prev, email: e.target.value }));
-                        validateEmail(e.target.value);
-                      }}
-                      className="w-full pl-12 pr-12 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                    />
-                    {validations.email && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <Check className="text-green-400 animate-bounce" size={20} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Mobile Field */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <Phone size={20} />
-                    </div>
-                    <input
-                      type="tel"
-                      placeholder="Mobile Number"
-                      value={signupData.mobile}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                        setSignupData(prev => ({ ...prev, mobile: value }));
-                        validateMobile(value);
-                      }}
-                      className="w-full pl-12 pr-12 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                    />
-                    {validations.mobile && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <Check className="text-green-400 animate-bounce" size={20} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Password Field */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <Lock size={20} />
-                    </div>
-                    <input
-                      type={showPassword.signup ? 'text' : 'password'}
-                      placeholder="Password"
-                      value={signupData.password}
-                      onChange={(e) => {
-                        setSignupData(prev => ({ ...prev, password: e.target.value }));
-                        validatePassword(e.target.value);
-                      }}
-                      className="w-full pl-12 pr-12 py-4 bg-transparent border-2 border-gray-500/50 dark:border-gray-400/50 rounded-2xl text-white placeholder-gray-300 focus:border-gray-400 dark:focus:border-gray-300 focus:outline-none transition-all duration-300 focus:animate-pulse font-['Poppins']"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(prev => ({ ...prev, signup: !prev.signup }))}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
-                    >
-                      {showPassword.signup ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                    {validations.password && (
-                      <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
-                        <Check className="text-green-400 animate-bounce" size={20} />
-                      </div>
-                    )}
-                  </div>
-                </form>
-              </Card>
+            {/* Toggle Sign Up/Sign In */}
+            <div className="text-center pt-4">
+              <span className="text-white/80 text-sm font-['Poppins']">
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              </span>
+              <button
+                onClick={() => onNavigate(isSignUp ? 'signin' : 'signup')}
+                className="text-white hover:text-gray-300 text-sm font-semibold transition-colors font-['Poppins']"
+              >
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </button>
             </div>
           </div>
         </div>
