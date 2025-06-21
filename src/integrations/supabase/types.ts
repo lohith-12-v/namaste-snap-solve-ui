@@ -9,7 +9,99 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          aadhaar: string
+          address: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          problems_reported: number | null
+          problems_solved: number | null
+          profile_photo_url: string | null
+          rating: number | null
+          reward_points: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aadhaar: string
+          address: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          problems_reported?: number | null
+          problems_solved?: number | null
+          profile_photo_url?: string | null
+          rating?: number | null
+          reward_points?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aadhaar?: string
+          address?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          problems_reported?: number | null
+          problems_solved?: number | null
+          profile_photo_url?: string | null
+          rating?: number | null
+          reward_points?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          photos: string[] | null
+          points_awarded: number | null
+          status: string | null
+          title: string
+          updated_at: string
+          urgency: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          location: string
+          photos?: string[] | null
+          points_awarded?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          urgency: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          photos?: string[] | null
+          points_awarded?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          urgency?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
