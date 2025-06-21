@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,39 +12,45 @@ const ChatBot = () => {
     { id: 1, text: "Hello! I'm TG FixIt Assistant. How can I help you today?", sender: 'bot' }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { language, t } = useLanguage();
 
-  const responses = {
-    'how to report': 'To report an issue: 1) Go to Report a Problem, 2) Select your location, 3) Choose problem category, 4) Add description and photos, 5) Submit!',
-    'track report': 'You can track your reports in the Report History section. Click on any report to see its progress timeline.',
-    'reward points': 'You earn reward points for each report submitted and additional points when issues are resolved. Points can be redeemed for various rewards.',
-    'contact support': 'For urgent issues, contact GHMC at 040-21111111 or email support@tgfixit.gov.in',
-    'app features': 'TG FixIt allows you to report civic issues, track their progress, earn rewards, and help make Telangana better for everyone.',
-    'account': 'You can manage your account settings by clicking the Settings icon in the top right corner of the home screen.',
-    'privacy': 'Your data is secure and used only for improving civic services. We follow strict privacy guidelines.',
-    'feedback': 'We value your feedback! You can rate resolved issues and provide comments to help us improve our services.'
-  };
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
     const newMessage = { id: Date.now(), text: inputMessage, sender: 'user' };
     setMessages(prev => [...prev, newMessage]);
+    setIsLoading(true);
 
-    // Find appropriate response
-    const lowercaseInput = inputMessage.toLowerCase();
-    let response = "I'm here to help with TG FixIt related questions. You can ask about reporting issues, tracking reports, reward points, or app features.";
-    
-    for (const [key, value] of Object.entries(responses)) {
-      if (lowercaseInput.includes(key)) {
-        response = value;
-        break;
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-ai', {
+        body: { 
+          message: inputMessage,
+          language: language 
+        }
+      });
+
+      if (error) {
+        throw error;
       }
-    }
 
-    setTimeout(() => {
-      const botResponse = { id: Date.now() + 1, text: response, sender: 'bot' };
+      const botResponse = { 
+        id: Date.now() + 1, 
+        text: data.reply || "I'm here to help with TG FixIt related questions.", 
+        sender: 'bot' 
+      };
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorResponse = { 
+        id: Date.now() + 1, 
+        text: "Sorry, I'm having trouble connecting right now. Please try again later.", 
+        sender: 'bot' 
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
 
     setInputMessage('');
   };
@@ -94,6 +102,13 @@ const ChatBot = () => {
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white p-3 rounded-xl text-sm">
+              Typing...
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input */}
@@ -106,11 +121,13 @@ const ChatBot = () => {
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Ask me anything..."
             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
+            disabled={isLoading}
           />
           <Button
             onClick={handleSendMessage}
             size="icon"
             className="h-10 w-10 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+            disabled={isLoading}
           >
             <Send size={16} />
           </Button>

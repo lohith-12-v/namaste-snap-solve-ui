@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string, address: string, aadhaar: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name?: string, address?: string, aadhaar?: string) => Promise<{ error: any }>;
   signIn: (identifier: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
@@ -101,23 +100,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, address: string, aadhaar: string) => {
+  const signUp = async (email: string, password: string, name: string = 'User', address: string = 'Address', aadhaar: string = '123456789012') => {
     try {
       console.log('Attempting sign up with:', { email, name, address, aadhaar });
       
-      // Validate required fields
-      if (!email || !password || !name || !address || !aadhaar) {
-        return { error: { message: 'All fields are required' } };
-      }
-
-      if (aadhaar.length !== 12 || !/^\d{12}$/.test(aadhaar)) {
-        return { error: { message: 'Aadhaar must be exactly 12 digits' } };
-      }
-
-      if (password.length < 6) {
-        return { error: { message: 'Password must be at least 6 characters' } };
-      }
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -139,7 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Sign up successful:', data);
       toast({
         title: "Account created successfully!",
-        description: "Please check your email to verify your account.",
+        description: "You can now sign in to your account.",
       });
 
       return { error: null };
@@ -153,10 +139,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Attempting sign in with identifier:', identifier);
       
-      if (!identifier || !password) {
-        return { error: { message: 'Email/Aadhaar and password are required' } };
-      }
-
       // Try signing in with email first
       let result = await supabase.auth.signInWithPassword({
         email: identifier,
@@ -183,13 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (result.error) {
         console.error('Sign in error:', result.error);
-        let errorMessage = 'Invalid email/aadhaar or password';
-        if (result.error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email/aadhaar or password';
-        } else if (result.error.message.includes('Email not confirmed')) {
-          errorMessage = 'Please check your email and confirm your account';
-        }
-        return { error: { message: errorMessage } };
+        return { error: { message: 'Invalid credentials. Please try again.' } };
       }
 
       console.log('Sign in successful:', result.data);
