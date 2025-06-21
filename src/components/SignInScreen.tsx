@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, CreditCard, Mail, Lock, Fingerprint, User, MapPin } from 'lucide-react';
+import { Eye, EyeOff, CreditCard, Mail, Lock, User, MapPin } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface SignInScreenProps {
   isSignUp?: boolean;
@@ -20,6 +21,9 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [loading, setLoading] = useState(false);
+  const { signUp, signIn } = useAuth();
+  const { toast } = useToast();
 
   const validateAadhaar = (value: string) => {
     return value.length === 12 && /^\d{12}$/.test(value);
@@ -76,8 +80,92 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
     }
   };
 
-  const handleSubmit = () => {
-    onSignIn();
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (isSignUp) {
+      if (!formData.name || !validateName(formData.name)) {
+        newErrors.name = 'Name must be at least 2 characters';
+      }
+      if (!formData.address || !validateAddress(formData.address)) {
+        newErrors.address = 'Address must be at least 10 characters';
+      }
+      if (!formData.email || !validateEmail(formData.email)) {
+        newErrors.email = 'Enter valid email address';
+      }
+    } else {
+      // For sign in, we need email or mobile (we'll treat as email for now)
+      if (!formData.email) {
+        newErrors.email = 'Email or Aadhaar is required';
+      }
+    }
+    
+    if (!formData.aadhaar || !validateAadhaar(formData.aadhaar)) {
+      newErrors.aadhaar = 'Aadhaar must be 12 digits';
+    }
+    if (!formData.password || !validatePassword(formData.password)) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors in the form",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(
+          formData.email,
+          formData.password,
+          formData.name,
+          formData.address,
+          formData.aadhaar
+        );
+        
+        if (error) {
+          toast({
+            title: "Sign Up Failed",
+            description: error.message || "Failed to create account",
+            variant: "destructive",
+          });
+        } else {
+          onSignIn();
+        }
+      } else {
+        const identifier = formData.email || formData.aadhaar;
+        const { error } = await signIn(identifier, formData.password);
+        
+        if (error) {
+          toast({
+            title: "Sign In Failed",
+            description: error.message || "Failed to sign in",
+            variant: "destructive",
+          });
+        } else {
+          onSignIn();
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -231,22 +319,14 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
                 </div>
                 <input
                   type="text"
-                  placeholder="Email or Mobile"
+                  placeholder="Email or Aadhaar"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder-gray-300 focus:outline-none transition-all duration-300 font-['Poppins'] ${
                     errors.email ? 'border-red-400 animate-pulse' : 
-                    isFieldValid('email') ? 'border-green-400' : 
                     'border-white/30 focus:border-white/50 focus:animate-pulse'
                   }`}
                 />
-                {isFieldValid('email') && (
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-                      <span className="text-white text-xs">✓</span>
-                    </div>
-                  </div>
-                )}
                 {errors.email && (
                   <p className="text-red-300 text-sm mt-1 font-['Poppins']">{errors.email}</p>
                 )}
@@ -288,19 +368,13 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
               )}
             </div>
 
-            {/* Fingerprint Icon */}
-            <div className="flex justify-center py-4">
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-full animate-pulse">
-                <Fingerprint className="h-8 w-8 text-white/70" />
-              </div>
-            </div>
-
             {/* Sign In Button */}
             <Button
               onClick={handleSubmit}
-              className="w-full bg-gray-900/80 hover:bg-gray-800/90 backdrop-blur-sm text-white rounded-xl py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 active:scale-95 font-['Poppins']"
+              disabled={loading}
+              className="w-full bg-gray-900/80 hover:bg-gray-800/90 backdrop-blur-sm text-white rounded-xl py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 active:scale-95 font-['Poppins'] disabled:opacity-50"
             >
-              {isSignUp ? 'Create Account' : 'Sign In'}
+              {loading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </Button>
 
             {/* Forgot Password */}
@@ -311,16 +385,6 @@ const SignInScreen = ({ isSignUp = false, onSignIn, onNavigate }: SignInScreenPr
                 </button>
               </div>
             )}
-
-            {/* Social Login */}
-            <div className="flex justify-center space-x-4 pt-4">
-              <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300 hover:shadow-lg cursor-pointer">
-                <span className="text-white font-bold">G</span>
-              </div>
-              <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300 hover:shadow-lg cursor-pointer">
-                <span className="text-white font-bold">f</span>
-              </div>
-            </div>
 
             {/* Toggle Sign Up/Sign In */}
             <div className="text-center pt-4">
